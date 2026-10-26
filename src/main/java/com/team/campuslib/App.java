@@ -1,40 +1,30 @@
-package com.team.campuslib;
 
-import java.util.Objects;
+package com.team.campuslib;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+
+import java.io.IOException;
 
 public class App extends Application {
 
     @Override
-    public void start(Stage stage) throws Exception {
+    public void start(Stage stage) throws IOException {
         FXMLLoader loader = new FXMLLoader(
-                Objects.requireNonNull(
-                        App.class.getResource(
-                                "/com/team/campuslib/view/LoginView.fxml"),
-                        "LoginView.fxml not found"
-                )
+                App.class.getResource("/com/team/campuslib/view/LoginView.fxml")
         );
 
-        Parent root = loader.load();
-
-        Scene scene = new Scene(root, 1180, 760);
-
+        Scene scene = new Scene(loader.load(), 1000, 650);
         scene.getStylesheets().add(
-                Objects.requireNonNull(
-                        App.class.getResource(
-                                "/com/team/campuslib/css/style.css"),
-                        "style.css not found"
-                ).toExternalForm()
+                App.class.getResource("/com/team/campuslib/css/style.css")
+                        .toExternalForm()
         );
 
-        stage.setTitle("CampusLib");
-        stage.setMinWidth(1000);
-        stage.setMinHeight(700);
+        stage.setTitle("CampusLib — Library Management System");
+        stage.setMinWidth(900);
+        stage.setMinHeight(600);
         stage.setScene(scene);
         stage.show();
     }
