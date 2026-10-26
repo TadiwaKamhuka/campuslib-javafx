@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/21"
+      xmlns:fx="http://javafx.com/fxml/1"
+      spacing="20">
+
+    <VBox styleClass="page-header">
+        <Label text="Members"
+               styleClass="page-title"/>
+
+        <Label text="Manage library members."
+               styleClass="page-subtitle"/>
+    </VBox>
+
+    <!-- TODO: Replace this placeholder with the approved Members
+         layout and MemberService data after backend integration. -->
+    <VBox styleClass="card">
+        <Label text="No members found."
+               styleClass="empty-state"
+               maxWidth="Infinity"/>
+
+        <Label text="Member management is not available in this preview."
+               styleClass="page-subtitle"
+               wrapText="true"/>
+    </VBox>
+</VBox>
