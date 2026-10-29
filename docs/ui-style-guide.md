@@ -38,6 +38,6 @@ The application uses the default JavaFX system font.
 * **Sidebar:** Fixed width of 240px on the left side of main screens.
 * **Stat Cards:** White background, rounded corners, light border, 4 cards per row on the dashboard (Books, Members, Active Loans, Overdue Loans).
 * **Buttons:**
-  * **Primary Action:** Blue filled button (`#1D4ED8`)
-  * **Secondary Action:** White button with gray border
-  * **Destructive Action:** Red filled button (`#DC2626`)
+    * **Primary Action:** Blue filled button (`#1D4ED8`)
+    * **Secondary Action:** White button with gray border
+    * **Destructive Action:** Red filled button (`#DC2626`)
