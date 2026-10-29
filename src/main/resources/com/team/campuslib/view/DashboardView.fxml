@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/21"
+      xmlns:fx="http://javafx.com/fxml/1"
+      spacing="20">
+
+    <VBox styleClass="page-header">
+        <Label fx:id="dashboardTitle"
+               text="Dashboard"
+               styleClass="page-title"/>
+
+        <Label fx:id="welcomeLabel"
+               text="Welcome back"
+               styleClass="page-subtitle"/>
+    </VBox>
+
+    <!-- TODO: Replace this placeholder with the approved dashboard
+         layout and DashboardService data after backend integration. -->
+    <VBox styleClass="card">
+        <Label text="Dashboard preview"
+               styleClass="table-header"/>
+
+        <Label text="Your dashboard summary will appear here."
+               styleClass="empty-state"
+               maxWidth="Infinity"
+               wrapText="true"/>
+
+        <Label text="This preview does not contain live library data."
+               styleClass="page-subtitle"
+               wrapText="true"/>
+    </VBox>
+</VBox>
