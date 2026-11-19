@@ -25,4 +25,7 @@ The application strictly separates concerns into three layers:
 * **Singleton Pattern:** Used in `DatabaseManager` and `SessionManager` to ensure only one instance exists throughout the application lifecycle.
 * **Factory Pattern:** Used in `RepositoryFactory` and `DialogFactory` to manage object creation and standard UI dialogs.
 * **Strategy Pattern:** Used for flexible book searching algorithms.
-* **Observer Pattern:** Implemented via `DataChangePublisher` and `DataChangeListener` so that tables and dashboard statistics automatically refresh when data changes.
+* **Observer Pattern:** Implemented via `DataChangePublisher` and `DataChangeListener` so that tables and dashboard statistics automatically refresh when data changes.  
+## Implementation Status  
+- **Implemented in develop:** Domain models (Book, Loan, LoanStatus, Member, Role, User), JPA persistence.xml and DatabaseManager, JavaFX views (Login, Main, Dashboard, Book, Loan, Member), CSS theme, and Login/Main controllers.  
+- **In Code Review (PR #7 and PR #8):** Database persistence lifecycle validation and Backend Book API (awaiting merge). 
