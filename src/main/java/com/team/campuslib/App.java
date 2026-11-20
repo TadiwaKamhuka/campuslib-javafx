@@ -8,11 +8,18 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
+import com.team.campuslib.util.DatabaseManager;
+
 public class App extends Application {
 
+    private DatabaseManager databaseManager;
+	
     @Override
     public void start(Stage stage) throws Exception {
-        FXMLLoader loader = new FXMLLoader(
+        
+	databaseManager = DatabaseManager.getInstance();	
+
+	 FXMLLoader loader = new FXMLLoader(
                 Objects.requireNonNull(
                         App.class.getResource(
                                 "/com/team/campuslib/view/LoginView.fxml"),
@@ -38,6 +45,13 @@ public class App extends Application {
         stage.setScene(scene);
         stage.show();
     }
+	
+    @Override
+    public void stop() {
+    	if (databaseManager != null) {
+       	 	databaseManager.shutdown();
+         }	
+     }
 
     public static void main(String[] args) {
         launch(args);
