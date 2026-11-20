@@ -2,83 +2,137 @@
 package com.team.campuslib;
 
 import com.team.campuslib.model.Book;
+import com.team.campuslib.service.BookService;
 import com.team.campuslib.util.DatabaseManager;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityTransaction;
+import java.util.List;
+import java.util.Optional;
 
 public class PersistenceSmokeTest {
 
     public static void main(String[] args) {
 
-        DatabaseManager databaseManager = DatabaseManager.getInstance();
+        BookService bookService = new BookService();
 
         Long bookId = null;
 
         try {
-            // STEP 1: Create a Book
+            // STEP 1: CREATE A BOOK
             Book book = new Book(
-                    "Persistence Test",
+                    "Backend Test Book",
                     "Rob",
-                    "SMOKE-TEST-20261118",
+                    "BACKEND-TEST-001",
                     "Testing",
                     3
             );
 
-            // STEP 2: Open EntityManager
-            EntityManager em = databaseManager.createEntityManager();
+            bookService.addBook(book);
 
-            try {
-                // STEP 3: Begin transaction
-                EntityTransaction transaction = em.getTransaction();
-                transaction.begin();
+            bookId = book.getId();
 
-                // STEP 4: Save the Book
-                em.persist(book);
+            System.out.println("\n1. BOOK CREATED");
+            System.out.println("ID: " + bookId);
 
-                // STEP 5: Commit transaction
-                transaction.commit();
+            // STEP 2: RETRIEVE ALL BOOKS
+            List<Book> books = bookService.getAllBooks();
 
-                bookId = book.getId();
+            System.out.println("\n2. ALL BOOKS RETRIEVED");
+            System.out.println("Total books: " + books.size());
 
-                System.out.println("BOOK SAVED! ID: " + bookId);
+            // STEP 3: RETRIEVE BOOK BY ID
+            Optional<Book> retrievedBook =
+                    bookService.getBookById(bookId);
 
-            } finally {
-                em.close();
+            if (retrievedBook.isEmpty()) {
+                throw new RuntimeException("Book retrieval failed!");
             }
 
-            // STEP 6: Retrieve the Book using a NEW EntityManager
-            EntityManager readEm = databaseManager.createEntityManager();
+            System.out.println("\n3. BOOK RETRIEVED BY ID");
+            System.out.println("Title: " + retrievedBook.get().getTitle());
 
-            try {
-                Book retrievedBook = readEm.find(Book.class, bookId);
+            // STEP 4: TEST SEARCH STRATEGIES
+            testSearch(bookService, "title", "Backend Test Book");
+            testSearch(bookService, "author", "Rob");
+            testSearch(bookService, "isbn", "BACKEND-TEST-001");
+            testSearch(bookService, "category", "Testing");
 
-                if (retrievedBook != null) {
-                    System.out.println("BOOK RETRIEVED SUCCESSFULLY!");
-                    System.out.println("Title: " + retrievedBook.getTitle());
-                    System.out.println("Author: " + retrievedBook.getAuthor());
-                    System.out.println("Available copies: "
-                            + retrievedBook.getAvailableCopies());
-                } else {
-                    throw new RuntimeException("Book was not found!");
-                }
+            // STEP 5: UPDATE BOOK
+            Book updatedBook = retrievedBook.get();
 
-                // STEP 7: Delete the temporary test record
-                EntityTransaction transaction = readEm.getTransaction();
-                transaction.begin();
+            updatedBook.setTitle("Updated Backend Test Book");
 
-                readEm.remove(retrievedBook);
+            bookService.updateBook(updatedBook);
 
-                transaction.commit();
+            Optional<Book> afterUpdate =
+                    bookService.getBookById(bookId);
 
-                System.out.println("TEST RECORD CLEANED UP!");
-
-            } finally {
-                readEm.close();
+            if (afterUpdate.isEmpty()
+                    || !afterUpdate.get().getTitle()
+                    .equals("Updated Backend Test Book")) {
+                throw new RuntimeException("Book update failed!");
             }
+
+            System.out.println("\n4. BOOK UPDATED SUCCESSFULLY");
+
+            // STEP 6: VERIFY AVAILABLE COPIES
+            System.out.println(
+                    "Available copies: "
+                            + afterUpdate.get().getAvailableCopies()
+            );
+
+            // STEP 7: VERIFY PERSISTENCE
+            Optional<Book> persistedBook =
+                    bookService.getBookById(bookId);
+
+            if (persistedBook.isEmpty()) {
+                throw new RuntimeException("Persistence check failed!");
+            }
+
+            System.out.println("\n5. BOOK PERSISTENCE VERIFIED");
+
+            // STEP 8: DELETE BOOK
+            bookService.deleteBook(bookId);
+
+            if (bookService.getBookById(bookId).isPresent()) {
+                throw new RuntimeException("Book deletion failed!");
+            }
+
+            System.out.println("\n6. BOOK DELETED SUCCESSFULLY");
+
+            System.out.println("\nALL BOOK BACKEND TESTS PASSED!");
 
         } finally {
-            databaseManager.shutdown();
+
+            // CLEANUP IF A PREVIOUS TEST FAILED
+            if (bookId != null) {
+                try {
+                    bookService.deleteBook(bookId);
+                } catch (RuntimeException ignored) {
+                    // The book may already have been deleted.
+                }
+            }
+
+            DatabaseManager.getInstance().shutdown();
         }
+    }
+
+    private static void testSearch(
+            BookService bookService,
+            String searchType,
+            String query
+    ) {
+
+        List<Book> results =
+                bookService.searchBooks(searchType, query);
+
+        if (results.isEmpty()) {
+            throw new RuntimeException(
+                    "Search failed for: " + searchType
+            );
+        }
+
+        System.out.println(
+                "Search passed: " + searchType
+        );
     }
 }
