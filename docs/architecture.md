@@ -29,3 +29,6 @@ The application strictly separates concerns into three layers:
 ## Implementation Status  
 - **Implemented in develop:** Domain models (Book, Loan, LoanStatus, Member, Role, User), JPA persistence.xml and DatabaseManager, JavaFX views (Login, Main, Dashboard, Book, Loan, Member), CSS theme, and Login/Main controllers.  
 - **In Code Review (PR #7 and PR #8):** Database persistence lifecycle validation and Backend Book API (awaiting merge). 
+  
+## Latest Status Update (PR #10)  
+- **In Code Review (PR #10):** Member, Loan, Auth, Session, Observer, Dashboard, and seed data updates (awaiting review/merge into develop). 
