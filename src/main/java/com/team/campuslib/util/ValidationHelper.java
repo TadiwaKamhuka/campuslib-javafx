@@ -70,4 +70,37 @@ public class ValidationHelper {
 
         return null;
     }
+
+    public static String validateMember(com.team.campuslib.model.Member member) {
+        if (member == null) {
+            return "Member cannot be null.";
+        }
+
+        if (member.getFullName() == null || member.getFullName().isBlank()) {
+            return "Member full name is required.";
+        }
+
+        if (member.getEmail() == null || member.getEmail().isBlank()) {
+            return "Member email is required.";
+        }
+
+        if (!member.getEmail().matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")) {
+            return "Member email format is invalid.";
+        }
+
+        if (member.getPhone() != null
+                && !member.getPhone().matches("^[0-9+()\\-\\s]{6,20}$")) {
+            return "Member phone number is invalid.";
+        }
+
+        return null;
+    }
+
+    public static String validateMemberId(Long id) {
+        if (id == null || id <= 0) {
+            return "A valid member ID is required.";
+        }
+
+        return null;
+    }
 }

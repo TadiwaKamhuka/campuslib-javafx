@@ -65,4 +65,36 @@ public class BookRepository {
 
         return typedQuery.getResultList();
     }
+
+    public boolean existsByIsbn(String isbn, Long excludeId) {
+        if (isbn == null) {
+            return false;
+        }
+
+        Long count = entityManager
+                .createQuery(
+                        "SELECT COUNT(b) FROM Book b "
+                                + "WHERE LOWER(b.isbn) = :isbn AND b.id <> :id",
+                        Long.class)
+                .setParameter("isbn", isbn.toLowerCase())
+                .setParameter("id", excludeId == null ? -1L : excludeId)
+                .getSingleResult();
+
+        return count > 0;
+    }
+
+    public long countLoans(Long bookId) {
+        return entityManager
+                .createQuery(
+                        "SELECT COUNT(l) FROM Loan l WHERE l.book.id = :id",
+                        Long.class)
+                .setParameter("id", bookId)
+                .getSingleResult();
+    }
+
+    public long count() {
+        return entityManager
+                .createQuery("SELECT COUNT(b) FROM Book b", Long.class)
+                .getSingleResult();
+    }
 }

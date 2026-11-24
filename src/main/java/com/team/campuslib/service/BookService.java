@@ -1,13 +1,13 @@
-
 package com.team.campuslib.service;
 
 import com.team.campuslib.model.Book;
 import com.team.campuslib.repository.BookRepository;
 import com.team.campuslib.repository.RepositoryFactory;
-import com.team.campuslib.util.DatabaseManager;
+import com.team.campuslib.util.Transactions;
+import com.team.campuslib.observer.DataChangePublisher;
+import com.team.campuslib.observer.DataChangeType;
+import com.team.campuslib.util.SessionManager;
 import com.team.campuslib.util.ValidationHelper;
-
-import jakarta.persistence.EntityManager;
 
 import java.util.List;
 import java.util.Optional;
@@ -15,191 +15,136 @@ import java.util.Optional;
 public class BookService {
 
     public List<Book> getAllBooks() {
-        EntityManager entityManager =
-                DatabaseManager.getInstance().createEntityManager();
-
-        try {
-            BookRepository repository =
-                    RepositoryFactory.createBookRepository(entityManager);
-
-            return repository.findAll();
-
-        } finally {
-            entityManager.close();
-        }
+        return Transactions.read(em ->
+                RepositoryFactory.createBookRepository(em).findAll());
     }
 
     public Optional<Book> getBookById(Long id) {
-        String error = ValidationHelper.validateBookId(id);
+        requireValid(ValidationHelper.validateBookId(id));
 
-        if (error != null) {
-            throw new IllegalArgumentException(error);
-        }
-
-        EntityManager entityManager =
-                DatabaseManager.getInstance().createEntityManager();
-
-        try {
-            BookRepository repository =
-                    RepositoryFactory.createBookRepository(entityManager);
-
-            return repository.findById(id);
-
-        } finally {
-            entityManager.close();
-        }
+        return Transactions.read(em ->
+                RepositoryFactory.createBookRepository(em).findById(id));
     }
 
     public List<Book> searchBooks(String searchType, String query) {
-        String error =
-                ValidationHelper.validateSearch(searchType, query);
+        requireValid(ValidationHelper.validateSearch(searchType, query));
 
-        if (error != null) {
-            throw new IllegalArgumentException(error);
-        }
-
-        EntityManager entityManager =
-                DatabaseManager.getInstance().createEntityManager();
-
-        try {
-            BookRepository repository =
-                    RepositoryFactory.createBookRepository(entityManager);
-
-            return repository.search(searchType, query);
-
-        } finally {
-            entityManager.close();
-        }
+        return Transactions.read(em ->
+                RepositoryFactory.createBookRepository(em)
+                        .search(searchType, query));
     }
 
     public void addBook(Book book) {
-        String error = ValidationHelper.validateBook(book);
+        SessionManager.getInstance().requireAdmin();
+        normalise(book);
+        requireValid(ValidationHelper.validateBook(book));
 
-        if (error != null) {
-            throw new IllegalArgumentException(error);
-        }
-
-        EntityManager entityManager =
-                DatabaseManager.getInstance().createEntityManager();
-
-        var transaction = entityManager.getTransaction();
-
-        try {
-            transaction.begin();
-
+        Transactions.write(em -> {
             BookRepository repository =
-                    RepositoryFactory.createBookRepository(entityManager);
+                    RepositoryFactory.createBookRepository(em);
 
-            repository.save(book);
-
-            transaction.commit();
-
-        } catch (RuntimeException e) {
-            if (transaction.isActive()) {
-                transaction.rollback();
+            if (repository.existsByIsbn(book.getIsbn(), null)) {
+                throw new IllegalArgumentException(
+                        "A book with this ISBN already exists.");
             }
 
-            throw e;
+            repository.save(book);
+            return null;
+        });
 
-        } finally {
-            entityManager.close();
-        }
+        DataChangePublisher.publish(DataChangeType.BOOKS);
     }
 
     public Book updateBook(Book book) {
+        SessionManager.getInstance().requireAdmin();
         if (book == null || book.getId() == null) {
             throw new IllegalArgumentException(
-                    "Book and book ID must not be null."
-            );
+                    "Book and book ID must not be null.");
         }
 
-        String error = ValidationHelper.validateBook(book);
+        normalise(book);
 
-        if (error != null) {
-            throw new IllegalArgumentException(error);
-        }
-
-        EntityManager entityManager =
-                DatabaseManager.getInstance().createEntityManager();
-
-        var transaction = entityManager.getTransaction();
-
-        try {
-            transaction.begin();
-
+        Book updated = Transactions.write(em -> {
             BookRepository repository =
-                    RepositoryFactory.createBookRepository(entityManager);
+                    RepositoryFactory.createBookRepository(em);
 
-            Optional<Book> existingBook =
-                    repository.findById(book.getId());
+            Book existing = repository.findById(book.getId())
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "Book not found with ID: " + book.getId()));
 
-            if (existingBook.isEmpty()) {
+            int onLoan = existing.getTotalCopies()
+                    - existing.getAvailableCopies();
+
+            if (book.getTotalCopies() < onLoan) {
                 throw new IllegalArgumentException(
-                        "Book not found with ID: " + book.getId()
-                );
+                        "Total copies cannot be lower than the "
+                                + onLoan + " copies currently on loan.");
             }
 
-            // Preserve the database-controlled available copy count.
-            book.setAvailableCopies(
-                    existingBook.get().getAvailableCopies()
-            );
+            book.setAvailableCopies(book.getTotalCopies() - onLoan);
+            requireValid(ValidationHelper.validateBook(book));
 
-            Book updatedBook = repository.update(book);
-
-            transaction.commit();
-
-            return updatedBook;
-
-        } catch (RuntimeException e) {
-            if (transaction.isActive()) {
-                transaction.rollback();
+            if (repository.existsByIsbn(book.getIsbn(), book.getId())) {
+                throw new IllegalArgumentException(
+                        "A book with this ISBN already exists.");
             }
 
-            throw e;
+            return repository.update(book);
+        });
 
-        } finally {
-            entityManager.close();
-        }
+        DataChangePublisher.publish(DataChangeType.BOOKS);
+        return updated;
     }
 
     public void deleteBook(Long id) {
-        String error = ValidationHelper.validateBookId(id);
+        SessionManager.getInstance().requireAdmin();
+        requireValid(ValidationHelper.validateBookId(id));
 
-        if (error != null) {
-            throw new IllegalArgumentException(error);
-        }
-
-        EntityManager entityManager =
-                DatabaseManager.getInstance().createEntityManager();
-
-        var transaction = entityManager.getTransaction();
-
-        try {
-            transaction.begin();
-
+        Transactions.write(em -> {
             BookRepository repository =
-                    RepositoryFactory.createBookRepository(entityManager);
+                    RepositoryFactory.createBookRepository(em);
 
             if (repository.findById(id).isEmpty()) {
                 throw new IllegalArgumentException(
-                        "Book not found with ID: " + id
-                );
+                        "Book not found with ID: " + id);
+            }
+
+            if (repository.countLoans(id) > 0) {
+                throw new IllegalStateException(
+                        "This book has loan records and cannot be deleted.");
             }
 
             repository.deleteById(id);
+            return null;
+        });
 
-            transaction.commit();
+        DataChangePublisher.publish(DataChangeType.BOOKS);
+    }
 
-        } catch (RuntimeException e) {
-            if (transaction.isActive()) {
-                transaction.rollback();
-            }
+    private static void normalise(Book book) {
+        if (book == null) {
+            return;
+        }
 
-            throw e;
+        if (book.getTitle() != null) {
+            book.setTitle(book.getTitle().trim());
+        }
 
-        } finally {
-            entityManager.close();
+        if (book.getAuthor() != null) {
+            book.setAuthor(book.getAuthor().trim());
+        }
+
+        book.setIsbn(blankToNull(book.getIsbn()));
+        book.setCategory(blankToNull(book.getCategory()));
+    }
+
+    private static String blankToNull(String value) {
+        return (value == null || value.isBlank()) ? null : value.trim();
+    }
+
+    private static void requireValid(String error) {
+        if (error != null) {
+            throw new IllegalArgumentException(error);
         }
     }
 }
-

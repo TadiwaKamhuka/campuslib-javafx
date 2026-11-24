@@ -9,6 +9,7 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 import com.team.campuslib.util.DatabaseManager;
+import com.team.campuslib.util.SeedDataInitializer;
 
 public class App extends Application {
 
@@ -18,6 +19,7 @@ public class App extends Application {
     public void start(Stage stage) throws Exception {
         
 	databaseManager = DatabaseManager.getInstance();	
+        SeedDataInitializer.seedIfEmpty();
 
 	 FXMLLoader loader = new FXMLLoader(
                 Objects.requireNonNull(

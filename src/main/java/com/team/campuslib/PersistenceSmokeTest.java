@@ -13,6 +13,8 @@ public class PersistenceSmokeTest {
     public static void main(String[] args) {
 
         BookService bookService = new BookService();
+        com.team.campuslib.util.SeedDataInitializer.seedIfEmpty();
+        new com.team.campuslib.service.AuthService().login("admin", "admin123");
 
         Long bookId = null;
 

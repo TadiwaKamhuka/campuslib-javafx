@@ -75,4 +75,15 @@ public class User {
     public void setActive(boolean active) {
         this.active = active;
     }
+
+    @Column(name = "member_id")
+    private Long memberId;
+
+    public Long getMemberId() {
+        return memberId;
+    }
+
+    public void setMemberId(Long memberId) {
+        this.memberId = memberId;
+    }
 }
