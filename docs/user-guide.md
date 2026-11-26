@@ -34,4 +34,8 @@ Students can browse the catalog and borrow available books.
   * Click the **"Borrow"** button next to an available book.
   * Confirm the borrow action. The due date is automatically set to 14 days from the borrow date.
 * **Tracking Loans:**
-  * Navigate to the **Loans** screen to view your active and past book borrowings.
+  * Navigate to the **Loans** screen to view your active and past book borrowings.  
+## Live Backend Features and Seed Data  
+- **Authentication and Session Management:** Users log in via AuthService with active session tracking via SessionManager.  
+- **Seed Data:** On startup, SeedDataInitializer populates initial sample users, members, books, and loans for immediate testing and demonstration.  
+- **Live Dashboard and Modules:** Dashboard statistics, member management, book catalog, and loan checkout/return workflows are connected to live database repositories and refresh automatically. 
